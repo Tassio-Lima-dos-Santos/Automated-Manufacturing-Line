@@ -2,13 +2,12 @@ FUNCTION_BLOCK FB_PRODUCT_QUEUE
 VAR_INPUT
     push : BOOL;
     pop  : BOOL;
-    peek  : BOOL;
     clear  : BOOL;
     itemIn : ST_PRODUCT;
 END_VAR
 
 VAR_OUTPUT
-    itemOut : ST_PRODUCT;
+    itemOut : POINTER TO ST_PRODUCT;
     isEmpty : BOOL;
     isFull  : BOOL;
 END_VAR
@@ -20,29 +19,32 @@ VAR
     count  : INT := 0;
 END_VAR
 
-// Enqueue
-IF push AND (count < 100) THEN
-    buffer[tail] := itemIn;
-    tail := (tail MOD 100) + 1;
-    count := count + 1;
-END_IF;
+// Empty queue returns null at itemOut
+IF (count = 0) THEN
+    itemOut := 0; // NULL
 
 // Peek
-IF peek THEN
-    itemOut := buffer[head];
-END_IF;
-
-// Dequeue
-IF pop AND (count > 0) THEN
-    itemOut := buffer[head];
-    head := (head MOD 100) + 1;
-    count := count - 1;
+ELSE
+    itemOut := Adr(buffer[head]);
 END_IF;
 
 // Clear
 IF clear THEN
+    head := 1;
     tail := head;
     count := 0;
+    itemOut := 0; // NULL
+
+// Dequeue
+ELSIF pop THEN
+    head := (head MOD 100) + 1;
+    count := count - 1;
+
+// Enqueue
+ELSIF push AND (count < 100) THEN
+    buffer[tail] := itemIn;
+    tail := (tail MOD 100) + 1;
+    count := count + 1;
 END_IF;
 
 isEmpty := (count = 0);
