@@ -1,52 +1,52 @@
 {attribute 'qualified_only'}
 VAR_GLOBAL
-    i_DS2        			  : BOOL;
-    i_Emergencia              : BOOL;
-	i_MachiningCenterOpened   : BOOL;
-	i_MachiningCenterIsBusy   : BOOL;
-	i_MachiningCenterHasError : BOOL;
-	i_RS1 					  : BOOL;
-	i_RS2 					  : BOOL;
-	i_SC    				  : BOOL;
-	i_SC1Mais 				  : BOOL;
-	i_SC1Menos 	 			  : BOOL;
-    i_SI        			  : BOOL;
-	i_SP 					  : REAL;
-	i_SPMais 				  : BOOL;
-	i_SPMenos 				  : BOOL;
-	i_SPP 					  : BOOL;
-	i_Start 				  : BOOL;
-	i_Stop 					  : BOOL;
-    i_XPOS        			  : REAL;
-    i_YPOS    				  : REAL;
-    i_ZPOS      			  : REAL;
+    i_DS2        			  : BOOL; // Sensor óptico da balança
+    i_Emergencia              : BOOL; // Botão de emergência
+	i_MachiningCenterOpened   : BOOL; // Centro de usinagem livre
+	i_MachiningCenterIsBusy   : BOOL; // Centro de usinagem trabalhando
+	i_MachiningCenterHasError : BOOL; // Erro no processo de usinagem
+	i_RS1 					  : BOOL; // Sensor óptico da usinagem
+	i_RS2 					  : BOOL; // Sensor óptico do empacotamento
+	i_SC    				  : BOOL; // Sensor capacitivo
+	i_SC1Mais 				  : BOOL; // Fim de curso do pistão - estendido
+	i_SC1Menos 	 			  : BOOL; // Fim de curso do pistão - retraido
+    i_SI        			  : BOOL; // Sensor indutivo
+	i_SP 					  : REAL; // Sensor da balança (4.0 plástico; 
+	i_SPMais 				  : BOOL; // Botão de aumentar quantidade de itens por caixa
+	i_SPMenos 				  : BOOL; // Botão de diminuir quantidade de itens por caixa
+	i_SPP 					  : BOOL; // Sensor de item pego pela ponte CNC
+	i_Start 				  : BOOL; // Botão START
+	i_Stop 					  : BOOL; // Botão STOP
+    i_XPOS        			  : REAL; // Dado da posição X atual da ponte CNC
+    i_YPOS    				  : REAL; // Dado da posição Y atual da ponte CNC
+    i_ZPOS      			  : REAL; // Dado da posição Z atual da ponte CNC
 
-	o_C1 					  : BOOL;
-	o_Caixas_Emissor_1 		  : BOOL;
-	o_E1 					  : BOOL;
-	o_E2 					  : BOOL;
-	o_E3 					  : BOOL;
-	o_EMETAL1 				  : BOOL;
-	o_EMETAL2 				  : BOOL;
-	o_EMETAL3 				  : BOOL;
-	o_Emissor_Partes 		  : BOOL;
-	o_Emitter_4 			  : BOOL;	
-	o_EPLASTIC1 			  : BOOL;
-	o_EPLASTIC2 			  : BOOL;
-	o_EPLASTIC3 			  : BOOL;
-	o_E_SP 					  : BOOL;
-	o_LedG 					  : BOOL;
-	o_LedR 					  : BOOL;
-	o_LedSPMais 			  : BOOL;
-	o_LedSPMenos 			  : BOOL;
-	o_LedStart 				  : BOOL;
-	o_LedStop 				  : BOOL;
-	o_LedY 					  : BOOL;
-    o_RB1_Stop 				  : BOOL;
-	o_RB1_Reset 			  : BOOL;
-	o_RB1_Start 			  : BOOL;
-	o_Succao 				  : BOOL;
-    o_X           			  : REAL;
-    o_Y   					  : REAL;
-    o_Z  					  : REAL;
+	o_C1 					  : BOOL; // Pistão
+	o_Caixas_Emissor_1 		  : BOOL; // Emissor de caixas (metal)
+	o_E1 					  : BOOL; // Primeira Esteira do classificador
+	o_E2 					  : BOOL; // Esteira final do classificador e inicial da usinagem
+	o_E3 					  : BOOL; // Esteira inicial do empacotamento
+	o_EMETAL1 				  : BOOL; // Primeira esteira de rolo do empacotamento de metal
+	o_EMETAL2 				  : BOOL; // Segunda esteira de rolo do empacotamento de metal
+	o_EMETAL3 				  : BOOL; // Terceira esteira de rolo do empacotamento de metal
+	o_Emissor_Partes 		  : BOOL; // Emissor dos itens (Deixar ligado)
+	o_Emitter_4 			  : BOOL; // Emissor de caixas (plástico)
+	o_EPLASTIC1 			  : BOOL; // Primeira esteira de rolo do empacotamento de plástico
+	o_EPLASTIC2 			  : BOOL; // Segunda esteira de rolo do empacotamento de plástico
+	o_EPLASTIC3 			  : BOOL; // Terceira esteira de rolo do empacotamento de plástico
+	o_E_SP 					  : BOOL; // Esteira da balança
+	o_LedG 					  : BOOL; // Led verde no canto da usinagem
+	o_LedR 					  : BOOL; // Led vermelho no canto da usinagem
+	o_LedSPMais 			  : BOOL; // Led do botão SP+
+	o_LedSPMenos 			  : BOOL; // Led do botão SP-
+	o_LedStart 				  : BOOL; // Led do botão START
+	o_LedStop 				  : BOOL; // Led do botão STOP
+	o_LedY 					  : BOOL; // Led amarelo no canto da usinagem
+    o_RB1_Stop 				  : BOOL; // Botão de interrupção do processo do braço robótico + usinagem
+	o_RB1_Reset 			  : BOOL; // Botão de reset do processo do braço robótico + usinagem
+	o_RB1_Start 			  : BOOL; // Botão de iniciar o processo do braço robótico + usinagem
+	o_Succao 				  : BOOL; // Acionamento da sucção da ponte CNC
+    o_X           			  : REAL; // Posição X da ponte CNC
+    o_Y   					  : REAL; // Posição Y da ponte CNC
+    o_Z  					  : REAL; // Posição Z da ponte CNC
 END_VAR
