@@ -24,12 +24,10 @@ VAR
 
     // Sensores
     SC  : BOOL := FALSE;    // Sensor capacitivo
+	SI  : BOOL := FALSE;    // Sensor indutivo
     OP1 : BOOL := FALSE;    // Sensor óptico 1
     OP2 : BOOL := FALSE;    // Sensor óptico 2
     OP3 : BOOL := FALSE;    // Sensor óptico 3
-
-    // Temporizadores
-    KT1 : BOOL := FALSE;    // Timer 1 pronto
 
     // Contadores
     contador_classificacao : INT := 0;
@@ -42,15 +40,27 @@ VAR
 
     // Variáveis lógicas da empacotadora
     metal    : BOOL;
+	caixa    : BOOL;
 
     // Variáveis da usinagem
     Mov1_concluido     : BOOL := FALSE;   // Movimento 1 concluído
     Mov2_concluido     : BOOL := FALSE;   // Movimento 2 concluído
     Usinagem_concluido : BOOL := FALSE;
 	
-    // Contadores de erro
-    Contador_sc  : BOOL := FALSE;
-    Contador_op1 : BOOL := FALSE;
-    Contador_op2 : BOOL := FALSE;
-    Contador_op3 : BOOL := FALSE;
+	// Atuadores
+	Esteira1 	  : BOOL := FALSE;
+	Esteira2 	  : BOOL := FALSE;
+	Esteira3 	  : BOOL := FALSE;
+	Esteira4      : BOOL := FALSE;
+	Esteira_plas  : BOOL := FALSE;
+	Esteira_metal : BOOL := FALSE;
+	Pistao1  	  : BOOL := FALSE;
+	
+	// Timers
+	Timer_sc  	  : TON := (PT := T#30S);
+	Timer_op1 	  : TON := (PT := T#30S);
+	Timer_op2     : TON := (PT := T#30S);
+	Timer_op3     : TON := (PT := T#30S);
+	Timer_balanca : TON := (PT := T#2S); 
+	
 END_VAR
