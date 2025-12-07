@@ -16,6 +16,7 @@ CASE E_Cla OF
 	Timer_sc.IN      := FALSE;
 	Timer_op1.IN     := FALSE;
 	Timer_balanca.IN := FALSE;
+	Fila_cla.clear   :=  TRUE;
   
 	// Transições de estado
   	IF Maquina1 THEN // Se receber o sinal Maquina1, a máquina classificadora sai do ócio
@@ -38,7 +39,14 @@ CASE E_Cla OF
   	// Ações
 	Timer_sc.IN := FALSE;
 	Timer_op1.IN := TRUE;
-	classificarMetal();
+	produtoBuffer.processed := FALSE;
+	IF SI THEN
+		produtoBuffer.metal := TRUE;
+	ELSE
+		produtoBuffer.metal := FALSE;
+	END_IF
+	Fila_cla.itemIn := produtoBuffer;
+	Fila_cla.push   := TRUE;
   
 	// Transições de estado
     IF (NOT(SC) AND OP1) THEN // Se tanto o sensor capacitivo não detectar nada, quanto o sensor optíco 1 detectar, passa pro próximo estado
@@ -50,6 +58,7 @@ CASE E_Cla OF
 	Timer_op1.IN    := FALSE;
 	Esteira1        := FALSE;
 	Esteira2        := FALSE;
+	Fila_cla.push   := FALSE;
 	Timer_balanca.IN := TRUE;
   
 	// Transições de estado
@@ -65,11 +74,15 @@ CASE E_Cla OF
 	ELSE
 		Pistao1 := FALSE;
 		contador_classificacao := contador_classificacao + 1;
+		Fila_usi.itemIn := Fila_cla.itemOut^;
+		Fila_usi.push := TRUE;
 	END_IF
+	Fila_cla.pop := TRUE;
   
 	// Transições de estado
     IF (NOT(OP1)) THEN // Se o sensor optíco 1 não detectar nada, volta ao início da operação
 		E_Cla := 1;
+		Fila_usi.push := FALSE;
 	END_IF;
 	
   	5: // Estado Emergência
@@ -80,6 +93,7 @@ CASE E_Cla OF
 	Timer_sc.IN      := FALSE;
 	Timer_op1.IN     := FALSE;
 	Timer_balanca.IN := FALSE;
+	Fila_cla.clear   :=  TRUE;
   
 	// Transições de estado
   
@@ -112,6 +126,7 @@ CASE E_Usi OF
 	Timer_op2.IN := FALSE;
 	interromperBraco();
 	interromperUsinagem();
+	Fila_usi.clear := TRUE;
   
 	// Transições de estado
     IF Maquina2 THEN // Se a máquina supervisora mandar o sinal de ligar, a máquina de usinagem sai do ócio
@@ -142,7 +157,7 @@ CASE E_Usi OF
 	
 	3: // Usinagem
   	// Ações
-	lerFila();
+	metal := Fila_usi.itemOut^.metal;
 	IF metal THEN
 		usinarMetal();
 	ELSE
@@ -158,10 +173,13 @@ CASE E_Usi OF
   	// Ações
 	Mov2();
 	contador_usinagem := contador_usinagem + 1;
+	Fila_emp.itemIn := Fila_usi.itemOut^;
+	Fila_usi.pop := TRUE;
   
 	// Transições de estado
   	IF (Mov2_concluido) THEN // Se o movimento 2 do braço robótico for concluído, passa pro próximo estado
 		E_Usi := 1;
+		Fila_usi.pop := FALSE;
 	END_IF;
 	
   	5: // Estado Emergência
@@ -170,6 +188,7 @@ CASE E_Usi OF
 	Timer_op2.IN := FALSE;
 	interromperBraco();
 	interromperUsinagem();
+	Fila_usi.clear := TRUE;
   
 	// Transições de estado
   
@@ -203,6 +222,7 @@ CASE E_Emp OF
 	Esteira_plas  := FALSE;
 	Esteira_metal := FALSE;
 	Timer_op3.IN  := FALSE;
+	Fila_emp.clear := TRUE;
   
 	// Transições de estado
   	IF Maquina3 THEN // Se a máquina supervisora mandar o sinal de ligar, a máquina de empacotamento sai do ócio
@@ -228,10 +248,9 @@ CASE E_Emp OF
     Esteira4      := FALSE;
 	Timer_op3.IN  := FALSE;
 	pegarItem();
-	lerFila();
   
 	// Transições de estado
-  	IF metal THEN // Se o item pego for metal, segue pro estado 3
+  	IF Fila_emp.itemOut^.metal THEN // Se o item pego for metal, segue pro estado 3
 		E_Emp := 3;
 	ELSE // Se não for, segue pro estado 4
 		E_Emp := 4;
@@ -240,19 +259,23 @@ CASE E_Emp OF
 	3: // Mover plástico
   	// Ações
 	posicionarPlastico();
-  
+  	Fila_emp.pop := TRUE;
+	
 	// Transições de estado
   	IF (plastico_counter < itemPorCaixa) THEN // Se a máquina supervisora mandar o sinal de ligar, a máquina de empacotamento sai do ócio
 		plastico_counter := plastico_counter + 1;
 		E_Emp := 1;
+		Fila_emp.pop := FALSE;
 	ELSE
 		E_Emp := 5;
+		Fila_emp.pop := FALSE;
 	END_IF;
 	
 	4: // Mover metal
   	// Ações
 	posicionarMetal();
-  
+  	Fila_emp.pop := TRUE;
+	
 	// Transições de estado
   	IF (metal_counter < itemPorCaixa) THEN // Se a máquina supervisora mandar o sinal de ligar, a máquina de empacotamento sai do ócio
 		metal_counter := metal_counter + 1;
@@ -285,6 +308,7 @@ CASE E_Emp OF
 	Esteira_plas  := FALSE;
 	Esteira_metal := FALSE;
 	Timer_op3.IN  := FALSE;
+	Fila_emp.clear := TRUE;
   
 	// Transições de estado
   
