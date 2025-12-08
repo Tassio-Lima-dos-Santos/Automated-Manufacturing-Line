@@ -5,11 +5,20 @@ VAR
     E_Usi : INT := 0;      // Usinagem
     E_Emp : INT := 0;      // Empacotamento
     E_Sup : INT := 0;      // Supervisora
+	
+	// Oneshot das máquinas
+	os_cla : ARRAY[0..50] OF BOOL; // Classificação
+	os_usi : ARRAY[0..50] OF BOOL; // Usinagem
+	os_emp : ARRAY[0..50] OF BOOL; // Empacotamento
+	os_sup : ARRAY[0..50] OF BOOL; // Supervisora
+	
+	os_reset : ARRAY[0..50] OF BOOL; // Array de reset dos oneshot
+
 
     // Entradas gerais
-    FIO.i_Start : BOOL;
-    FIO.i_Stop  : BOOL;
-	FIO.i_Emergencia  : BOOL;
+    START : BOOL;
+    STOP  : BOOL;
+	EMER  : BOOL;
 
     // Sinais de emergência
     Emergencia1 : BOOL := FALSE;
@@ -23,11 +32,11 @@ VAR
     Maquina3 : BOOL := FALSE;   // Liga empacotamento
 
     // Sensores
-    FIO.i_SC  : BOOL := FALSE;    // Sensor capacitivo
-	FIO.i_SI  : BOOL := FALSE;    // Sensor indutivo
-    FIO.i_DS2 : BOOL := FALSE;    // Sensor óptico 1
-    FIO.i_RS1 : BOOL := FALSE;    // Sensor óptico 2
-    FIO.i_RS2 : BOOL := FALSE;    // Sensor óptico 3
+    SC  : BOOL := FALSE;    // Sensor capacitivo
+	SI  : BOOL := FALSE;    // Sensor indutivo
+    OP1 : BOOL := FALSE;    // Sensor óptico 1
+    OP2 : BOOL := FALSE;    // Sensor óptico 2
+    OP3 : BOOL := FALSE;    // Sensor óptico 3
 
     // Contadores
     contador_classificacao : INT := 0;
@@ -48,13 +57,13 @@ VAR
     Usinagem_concluido : BOOL := FALSE;
 	
 	// Atuadores
-	FIO.o_E1 	  : BOOL := FALSE;
-	FIO.o_E_SP 	  : BOOL := FALSE;
-	FIO.o_E2 	  : BOOL := FALSE;
-	FIO.o_E3      : BOOL := FALSE;
+	Esteira1 	  : BOOL := FALSE;
+	Esteira2 	  : BOOL := FALSE;
+	Esteira3 	  : BOOL := FALSE;
+	Esteira4      : BOOL := FALSE;
 	Esteira_plas  : BOOL := FALSE;
 	Esteira_metal : BOOL := FALSE;
-	FIO.o_C1  	  : BOOL := FALSE;
+	Pistao1  	  : BOOL := FALSE;
 	
 	// Timers
 	Timer_sc  	  : TON := (PT := T#30S);
@@ -76,6 +85,7 @@ VAR
 	empCNC : FB_MoveTo;
 	
 END_VAR
+
 
 //--------------------------------------------------------------------------------------------
 //-------------------------------TRATAMENTO DE VARIÁVEIS--------------------------------------
