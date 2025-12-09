@@ -72,10 +72,10 @@ VAR
 	Pistao1  	  : BOOL := FALSE;
 	
 	// Timers dos sensores
-	Timer_sc  	  : TON := (PT := T#30S);
-	Timer_op1 	  : TON := (PT := T#30S);
-	Timer_op2     : TON := (PT := T#30S);
-	Timer_op3     : TON := (PT := T#30S);
+	Timer_sc  	  : TON := (PT := T#60S);
+	Timer_op1 	  : TON := (PT := T#60S);
+	Timer_op2     : TON := (PT := T#60S);
+	Timer_op3     : TON := (PT := T#120S);
 	
 	// Delays
 	Delay_Cla_metal : TP := (PT := T#1S); // Delay da classificação metal
@@ -88,6 +88,8 @@ VAR
 	trigDelayMetal : F_TRIG;
 	trigUsiConcluida : F_TRIG;
 	trigUsiOcupada : R_TRIG;
+	trigSPMais : R_TRIG;
+	trigSPMenos : R_TRIG;
 	
 	// Buffer de produto
 	produtoBuffer : ST_PRODUCT;
@@ -731,7 +733,19 @@ CASE E_Sup OF
 	Emergencia1 := FALSE;
 	Emergencia2 := FALSE;
 	Emergencia3 := FALSE;
-	FIO.o_LedY  := TRUE;
+	FIO.o_LedR := FALSE;
+	FIO.o_LedG := FALSE;
+	FIO.o_LedY := TRUE;
+
+	trigSPMais(CLK:=FIO.i_SPMais);
+	IF trigSPMais.Q THEN
+		itemPorCaixa := itemPorCaixa + 1;
+	END_IF;
+
+	trigSPMenos(CLK:=FIO.i_SPMenos);
+	IF trigSPMenos.Q THEN
+		itemPorCaixa := itemPorCaixa - 1;
+	END_IF;
   
 	// Transições de estado
   	IF FIO.i_Start THEN // Se o botão FIO.i_Start for pressionado, a máquina supervisora sai do ócio
@@ -740,8 +754,15 @@ CASE E_Sup OF
 	
 	1: // Ligar máquina classificação
 	// Ações
+	Maquina1   := TRUE;
+	Maquina2   := FALSE;
+	Maquina3   := FALSE;
+	Emergencia1 := FALSE;
+	Emergencia2 := FALSE;
+	Emergencia3 := FALSE;
+	FIO.o_LedR := FALSE;
 	FIO.o_LedG := TRUE;
-	Maquina1 := TRUE;
+	FIO.o_LedY := FALSE;
 
   
 	// Transições de estado
@@ -751,7 +772,15 @@ CASE E_Sup OF
 	
 	2: // Ligar máquina usinagem
   	// Ações
-	Maquina2 := TRUE;
+	Maquina1   := TRUE;
+	Maquina2   := TRUE;
+	Maquina3   := FALSE;
+	Emergencia1 := FALSE;
+	Emergencia2 := FALSE;
+	Emergencia3 := FALSE;
+	FIO.o_LedR := FALSE;
+	FIO.o_LedG := TRUE;
+	FIO.o_LedY := FALSE;
   
 	// Transições de estado
   	IF (contador_usinagem > 0) THEN // Se o primeiro item passar por todas os estados da máquina usinadora, passa pro próximo estado
@@ -760,7 +789,15 @@ CASE E_Sup OF
 	
 	3: // Ligar máquina empacotamento
   	// Ações
-	Maquina3 := TRUE;
+	Maquina1   := TRUE;
+	Maquina2   := TRUE;
+	Maquina3   := TRUE;
+	Emergencia1 := FALSE;
+	Emergencia2 := FALSE;
+	Emergencia3 := FALSE;
+	FIO.o_LedR := FALSE;
+	FIO.o_LedG := TRUE;
+	FIO.o_LedY := FALSE;
   
 	// Transições de estado
   
@@ -774,6 +811,8 @@ CASE E_Sup OF
 	Emergencia2 := TRUE;
 	Emergencia3 := TRUE;
 	FIO.o_LedR := TRUE;
+	FIO.o_LedG := FALSE;
+	FIO.o_LedY := FALSE;
   
 	// Transições de estado
 	
