@@ -1,8 +1,8 @@
 FUNCTION_BLOCK FB_MoveTo
 VAR_INPUT
-    targetX : REAL;
-    targetY : REAL;
-    targetZ : REAL;
+    targetX : INT;
+    targetY : INT;
+    targetZ : INT;
     start   : BOOL;   // pulso de start
 END_VAR
 
@@ -11,13 +11,16 @@ VAR_OUTPUT
 END_VAR
 
 VAR
+	trigStart : R_TRIG;
     state : INT := 0;
 END_VAR
+
+trigStart(CLK:=start);
 
 CASE state OF
 
     0: // Idle
-        IF start THEN
+        IF trigStart.Q THEN
             state := 10;
 			done := FALSE;
         END_IF
