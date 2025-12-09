@@ -295,7 +295,7 @@ CASE E_Cla OF
 	FIO.o_E1          := FALSE;
 	FIO.o_E_SP          := FALSE;
 	FIO.o_C1           := FALSE;
-	Delay_E_Cla_4(IN := FALSE);
+	delayEstabilizarBalanca(IN := FALSE);
 	global.Fila_cla.clear    :=  TRUE;
   
 	// Transições de estado
@@ -313,7 +313,7 @@ CASE E_Cla OF
   	// Ações
 	FIO.o_E1          := FALSE;
 	FIO.o_E_SP        := FALSE;
-	Delay_E_Cla_4(IN := FALSE);
+	delayEstabilizarBalanca(IN := FALSE);
   
 	// Transições de estado
 	IF NOT esperaCla THEN
