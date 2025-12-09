@@ -21,7 +21,7 @@ VAR
     Zbox : INT := 800;
     Xidle : INT := 500;
     Yidle : INT := 500;
-    Zidle : INT := 500;
+    Zidle : INT := 100;
 
 END_VAR
 
