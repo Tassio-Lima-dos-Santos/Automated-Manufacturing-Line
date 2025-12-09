@@ -378,11 +378,11 @@ CASE E_Usi OF
 	1: // Liga Esteira
 	// Ação oneshot
 	IF NOT os_usi[E_Usi] THEN
-		os_cla := os_reset;
+		os_usi := os_reset;
 		
 		
 		
-		os_cla[E_Cla] := TRUE;
+		os_usi[E_Usi] := TRUE;
 	END_IF
 	
   	// Ações
@@ -422,7 +422,7 @@ CASE E_Usi OF
 		os_usi := os_reset;
 		
 		global.Fila_usi(clear := TRUE); // Limpa a fila
-		global.Fila_usiclear := FALSE;
+		global.Fila_usi.clear := FALSE;
 		
 		os_usi[E_Usi] := TRUE;
 	END_IF
@@ -454,7 +454,7 @@ END_IF;
 trigUsiOcupada(CLK:=FIO.i_MachiningCenterIsBusy AND OP2);
 IF (FIO.i_MachiningCenterIsBusy AND OP2) THEN
 	IF trigUsiOcupada.Q THEN
-		E_Cla_anterior := E_Cla
+		E_Cla_anterior := E_Cla;
 	END_IF;
 	FIO.o_E2 := FALSE;
 	esperaCla := TRUE;
@@ -509,12 +509,10 @@ CASE E_Emp OF
 	// Transições de estado
 	IF empCNC.done THEN
 		FIO.o_Succao := TRUE;
-		IF (global.Fila_emp.itemOut <> 0) THEN
-  			IF global.Fila_emp.itemOut .metal THEN // Se o item pego for metal, segue pro estado 3
-				E_Emp := 3;
-			ELSE // Se não for, segue pro estado 4
-				E_Emp := 4;
-			END_IF;
+  		IF global.Fila_emp.itemOut .metal THEN // Se o item pego for metal, segue pro estado 3
+			E_Emp := 3;
+		ELSE // Se não for, segue pro estado 4
+			E_Emp := 4;
 		END_IF;
 	END_IF;
 	
