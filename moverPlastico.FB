@@ -13,9 +13,9 @@ VAR
     state : INT := 0;
 
     // Coordenadas
-    Xpart : INT := 0;
+    Xpart : INT := 110;
     Ypart : INT := 500;
-    Zpart : INT := 850;
+    Zpart : INT := 830;
     Xbox : INT := 330;
     Ybox : INT := 500;
     Zbox : INT := 800;
