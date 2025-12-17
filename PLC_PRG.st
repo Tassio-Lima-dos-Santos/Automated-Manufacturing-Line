@@ -96,13 +96,14 @@ VAR
 	
 	// Blocos Funcionais
 	movimentoPistao : empurrarCaixa;
-	empCNC : FB_MoveTo;
 	posicionarEstPlas : posicionarEsteiraPlastico;
  	posicionarEstMetal : posicionarEsteiraMetal;
  	movPlas : moverPlastico;
  	movMetal : moverMetal;
 	reposicionarEstPlas : reposicionarEsteiraPlastico;
 	reposicionarEstMetal : reposicionarEsteiraMetal;
+	pFilaUsi : pushFilaUsi;
+	pFilaEmp : pushFilaEmp;
 
 	
 END_VAR
@@ -280,7 +281,6 @@ CASE E_Cla OF
 	IF NOT os_cla[E_Cla] THEN
 		os_cla := os_reset;
 		
-		pushFilaUsi(); // Passa o item que está saindo da fila de classificação para a fila de usinagem
 		contador_classificacao := contador_classificacao + 1; // Aumenta a contagem dos itens que passaram na classificação
 		
 		os_cla[E_Cla] := TRUE;
@@ -289,9 +289,12 @@ CASE E_Cla OF
   	// Ações
 	FIO.o_E1 := TRUE;
 	FIO.o_E_SP := TRUE; // Liga a esteira da balança
+	pFilaUsi(start := TRUE); // Passa o item que está saindo da fila de classificação para a fila de usinagem
+
 
 	// Transições de estado
-    IF NOT FIO.i_DS2 THEN // Se não detectar mais com o sensor óptico, volta ao início
+    IF NOT FIO.i_DS2 AND pFilaUsi.done THEN // Se não detectar mais com o sensor óptico, volta ao início
+		pFilaUsi(start := FALSE);
 		E_Cla := 1;
 	END_IF;
 	
@@ -426,12 +429,32 @@ CASE E_Usi OF
 	// Transições de estado
 	trigUsiConcluida(CLK:=FIO.i_MachiningCenterIsBusy);
   	IF trigUsiConcluida.Q THEN // Se o movimento 1 do braço robótico for concluído, passa pro próximo estado
-		E_Usi := 1; // Volta pro estado 1
+		E_Usi := 3; // Volta pro estado 1
 		contador_usinagem := contador_usinagem + 1; // Aumenta em um o números de coisas usinadas
-		pushFilaEmp();
 	END_IF;
+
+	3: // Passar item para a próxima fila 
+  	// Ação oneshot
+	IF NOT os_usi[E_Usi] THEN
+		os_usi := os_reset;
+		
+		
+		
+		os_usi[E_Usi] := TRUE;
+	END_IF
 	
-  	3: // Estado Emergência
+  	// Ações
+	pFilaEmp(start := TRUE); // Passa o item que está saindo da fila de usinagem para a fila de empacotamento
+  
+	// Transições de estado
+  	IF pFilaEmp.done THEN // Se o movimento 1 do braço robótico for concluído, passa pro próximo estado
+		E_Usi := 1; // Volta pro estado 1
+		pFilaEmp(start := FALSE);
+	END_IF;
+
+
+	
+  	4: // Estado Emergência
   	// Ação oneshot
 	IF NOT os_usi[E_Usi] THEN
 		os_usi := os_reset;
@@ -456,7 +479,7 @@ END_CASE;
 
 // Transições de estado universais
 IF Emergencia2 THEN
-	E_Usi := 3;
+	E_Usi := 4;
 	
 ELSIF NOT(Maquina2) THEN
 	E_Usi := 0;
