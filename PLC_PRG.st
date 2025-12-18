@@ -6,18 +6,14 @@ VAR
     E_Usi : INT := 0;      // Usinagem
     E_Emp : INT := 0;      // Empacotamento
     E_Sup : INT := 0;      // Supervisora
-
-	// Codições de mudança de estado
-	classificacaoConcluida : BOOL;
 	
 	// Oneshot das máquinas
-	os_cla : ARRAY[0..50] OF BOOL; // Classificação
-	os_usi : ARRAY[0..50] OF BOOL; // Usinagem
-	os_emp : ARRAY[0..50] OF BOOL; // Empacotamento
-	os_sup : ARRAY[0..50] OF BOOL; // Supervisora
+	os_cla : ARRAY[0..10] OF BOOL; // Classificação
+	os_usi : ARRAY[0..10] OF BOOL; // Usinagem
+	os_emp : ARRAY[0..10] OF BOOL; // Empacotamento
+	os_sup : ARRAY[0..10] OF BOOL; // Supervisora
 	
-	os_reset : ARRAY[0..50] OF BOOL; // Array de reset dos oneshot
-
+	os_reset : ARRAY[0..10] OF BOOL; // Array de reset dos oneshot
 
     // Entradas gerais
     START : BOOL;
@@ -47,29 +43,16 @@ VAR
     // Contadores
     contador_classificacao : INT := 0;
     contador_usinagem      : INT := 0;
+    contador_empacotamento : INT := 0;
 
     // Contadores da empacotadora
-    plastico_counter : INT := 0;
-    metal_counter    : INT := 0;
-    itemPorCaixa     : INT := 3;   // EXEMPLO — ajuste conforme sua lógica
+    plastico_counter : INT := 0; // Quantidade de itens de plástico na caixa de plástico atual
+    metal_counter    : INT := 0; // Quantidade de itens de metal na caixa de metal atual
+    itemPorCaixa     : INT := 3; // Quantidade de itens que devem ser colocados em uma caixa no empacotamento
 
     // Variáveis lógicas da empacotadora
     metal    : BOOL;
 	caixa    : BOOL;
-
-    // Variáveis da usinagem
-    Mov1_concluido     : BOOL := FALSE;   // Movimento 1 concluído
-    Mov2_concluido     : BOOL := FALSE;   // Movimento 2 concluído
-    Usinagem_concluido : BOOL := FALSE;
-	
-	// Atuadores
-	Esteira1 	  : BOOL := FALSE;
-	Esteira2 	  : BOOL := FALSE;
-	Esteira3 	  : BOOL := FALSE;
-	Esteira4      : BOOL := FALSE;
-	Esteira_plas  : BOOL := FALSE;
-	Esteira_metal : BOOL := FALSE;
-	Pistao1  	  : BOOL := FALSE;
 	
 	// Timers dos sensores
 	Timer_sc  	  : TON := (PT := T#60S);
@@ -80,29 +63,30 @@ VAR
 	// Delays
 	Delay_Cla_metal : TP := (PT := T#1S); // Delay da classificação metal
 	delayEstabilizarBalanca : TON := (PT := T#2S); // Delay da balança
-	Delay_E_Cla_5 : TON := (PT := T#5S); // Delay para considerar classificação concluída
-	Delay_E_Emp_5 : TON := (PT := T#3S); // Delay para movimentar as esteiras de plástico e metal
 	
 	// Triggers
-	trigSC : R_TRIG;
-	trigDelayMetal : F_TRIG;
-	trigUsiConcluida : F_TRIG;
-	trigUsiOcupada : R_TRIG;
-	trigSPMais : R_TRIG;
-	trigSPMenos : R_TRIG;
+	trigSC : R_TRIG; // Trigger ativo na subida do sensor SC, 
+					 // usado para identificar um item passando na classificação
+	trigUsiConcluida : F_TRIG; // Trigger ativo na descida da variável MachiningCenterIsBusy,
+							   // Usado para identificar quando a usinagem é concluída
+	trigUsiOcupada : R_TRIG; // Trigger ativo na subida da variável MachiningCenterIsBusy,
+							 // Usado para identificar quando a usinagem é iniciada
+	trigSPMais : R_TRIG; // Triggers de subida dos botões SP+ e SP-, usado para identificar
+	trigSPMenos : R_TRIG; // quando esse botões são pressionados
 	
-	// Buffer de produto
-	produtoBuffer : ST_PRODUCT;
-	
-	// Blocos Funcionais
+	// Blocos Funcionais - Classificação
 	movimentoPistao : empurrarCaixa;
+
+	// Blocos Funcionais - Usinagem
+	pFilaUsi : pushFilaUsi;
+
+	// Blocos Funcionais - Empacotamento
 	posicionarEstPlas : posicionarEsteiraPlastico;
  	posicionarEstMetal : posicionarEsteiraMetal;
  	movPlas : moverPlastico;
  	movMetal : moverMetal;
 	reposicionarEstPlas : reposicionarEsteiraPlastico;
 	reposicionarEstMetal : reposicionarEsteiraMetal;
-	pFilaUsi : pushFilaUsi;
 	pFilaEmp : pushFilaEmp;
 
 	
@@ -119,9 +103,6 @@ OP2 := NOT(FIO.i_RS1);
 OP3 := NOT(FIO.i_RS2);
 
 // Variáveis com valores padrão
-FIO.o_LedG := FALSE;
-FIO.o_LedR := FALSE;
-FIO.o_LedY := FALSE;
 FIO.o_LedSPMais := FIO.i_SPMais;
 FIO.o_LedSPMenos := FIO.i_SPMenos;
 FIO.o_LedStart := FIO.i_Start;
@@ -180,7 +161,7 @@ CASE E_Cla OF
 		
 		delayEstabilizarBalanca(IN := FALSE); // Reinicia o timer de delay da balança
 		global.Fila_cla(clear := TRUE); // Limpa fila de dados
-		global.Fila_cla.clear := FALSE;
+		global.Fila_cla(clear := FALSE);
 		
 		os_cla[E_Cla] := TRUE;
 	END_IF
@@ -196,12 +177,6 @@ CASE E_Cla OF
 	END_IF;
 	
 	1: // Liga Esteira
-	// Ação oneshot
-	IF NOT os_cla[E_Cla] THEN
-		os_cla := os_reset;
-		
-		os_cla[E_Cla] := TRUE;
-	END_IF
 	
 	// Ações
 	FIO.o_E1    := TRUE; // Deixa a esteira 1 ligada
@@ -213,14 +188,6 @@ CASE E_Cla OF
 	END_IF;
 	
 	2: // Espera estabilizar peso
-	// Ação oneshot
-	IF NOT os_cla[E_Cla] THEN
-		os_cla := os_reset;
-		
-		
-		
-		os_cla[E_Cla] := TRUE;
-	END_IF
 	
   	// Ações
 	delayEstabilizarBalanca(IN := TRUE); // Delay para estabilizar a balança
@@ -260,7 +227,7 @@ CASE E_Cla OF
 		os_cla := os_reset;
 		
 		global.Fila_cla(pop := TRUE);
-		global.Fila_cla.pop := FALSE;
+		global.Fila_cla(pop := FALSE);
 		
 		os_cla[E_Cla] := TRUE;
 	END_IF
@@ -303,7 +270,8 @@ CASE E_Cla OF
 	IF NOT os_cla[E_Cla] THEN
 		os_cla := os_reset;
 		
-		
+		global.Fila_cla(clear := TRUE);
+		global.Fila_cla(clear := FALSE);
 		
 		os_cla[E_Cla] := TRUE;
 	END_IF
@@ -313,19 +281,10 @@ CASE E_Cla OF
 	FIO.o_E_SP          := FALSE;
 	FIO.o_C1           := FALSE;
 	delayEstabilizarBalanca(IN := FALSE);
-	global.Fila_cla.clear    :=  TRUE;
   
 	// Transições de estado
   
 	7: // Espera
-	// Ação oneshot
-	IF NOT os_cla[E_Cla] THEN
-		os_cla := os_reset;
-		
-		
-		
-		os_cla[E_Cla] := TRUE;
-	END_IF
 	
   	// Ações
 	FIO.o_E1          := FALSE;
@@ -377,7 +336,7 @@ CASE E_Usi OF
 		os_usi := os_reset;
 		
 		global.Fila_usi(clear := TRUE); // Limpa fila
-		global.Fila_usi.clear := FALSE;
+		global.Fila_usi(clear := FALSE);
 		
 		os_usi[E_Usi] := TRUE;
 	END_IF
@@ -385,26 +344,22 @@ CASE E_Usi OF
   	// Ações
 	FIO.o_E2     := FALSE; // Esteira 2 desligada
 	FIO.o_RB1_Reset := TRUE; // Reseta o robô
-	FIO.o_RB1_Stop := FALSE;
+	FIO.o_RB1_Stop := FALSE; // Impede o robô travado
+	FIO.o_RB1_Start := FALSE; // Impede o robô iniciar o movimento
   
 	// Transições de estado
     IF Maquina2 THEN // Se a máquina supervisora mandar o sinal de ligar, a máquina de usinagem sai do ócio
 		E_Usi := 1;
-		FIO.o_RB1_Reset := FALSE;
 	END_IF;
 	
 	1: // Liga Esteira
-	// Ação oneshot
-	IF NOT os_usi[E_Usi] THEN
-		os_usi := os_reset;
-		
-		
-		
-		os_usi[E_Usi] := TRUE;
-	END_IF
 	
   	// Ações
 	FIO.o_E2 := TRUE; // Liga a esteira
+	FIO.o_RB1_Reset := FALSE; // Impede o robô de resetar
+	FIO.o_RB1_Stop := TRUE; // Deixa o robô travado
+	FIO.o_RB1_Start := FALSE; // Impede o robô iniciar o movimento
+
   
 	// Transições de estado
     IF OP2 THEN // Se o sensor optíco 2 detectar a peça, passa para o próximo estado
@@ -412,36 +367,23 @@ CASE E_Usi OF
 	END_IF;
 	
 	2: // Usinagem
-  	// Ação oneshot
-	IF NOT os_usi[E_Usi] THEN
-		os_usi := os_reset;
-		
-		
-		
-		os_usi[E_Usi] := TRUE;
-	END_IF
 	
   	// Ações
 	// Se o item for metal, ele recebe o design fundo, se for plástico recebe o design de lids
 	FIO.o_MachiningCenterProduceLids := NOT(global.Fila_usi.itemOut.metal);
-	FIO.o_RB1_Start := TRUE; // Inicia 
+	FIO.o_RB1_Reset := FALSE; // Impede o robô de resetar
+	FIO.o_RB1_Stop := FALSE; // Impede o robô travado
+	FIO.o_RB1_Start := TRUE; // Inicia o movimento do robô
   
 	// Transições de estado
 	trigUsiConcluida(CLK:=FIO.i_MachiningCenterIsBusy);
-  	IF trigUsiConcluida.Q THEN // Se o movimento 1 do braço robótico for concluído, passa pro próximo estado
+  	IF trigUsiConcluida.Q THEN // Se a usinagem for concluída, passa pro próximo estado
 		E_Usi := 3; // Volta pro estado 1
 		contador_usinagem := contador_usinagem + 1; // Aumenta em um o números de coisas usinadas
+		trigUsiConcluida(CLK:=FIO.i_MachiningCenterIsBusy);
 	END_IF;
 
 	3: // Passar item para a próxima fila 
-  	// Ação oneshot
-	IF NOT os_usi[E_Usi] THEN
-		os_usi := os_reset;
-		
-		
-		
-		os_usi[E_Usi] := TRUE;
-	END_IF
 	
   	// Ações
 	pFilaEmp(start := TRUE); // Passa o item que está saindo da fila de usinagem para a fila de empacotamento
@@ -460,16 +402,16 @@ CASE E_Usi OF
 		os_usi := os_reset;
 		
 		global.Fila_usi(clear := TRUE); // Limpa a fila
-		global.Fila_usi.clear := FALSE;
+		global.Fila_usi(clear := FALSE;)
 		
 		os_usi[E_Usi] := TRUE;
 	END_IF
 	
   	// Ações
 	FIO.o_E2     := FALSE; // Desliga a esteira
-	FIO.o_RB1_Stop := TRUE; // Para o robô
-  
-	// Transições de estado
+	FIO.o_RB1_Reset := FALSE; // Impede o robô de resetar
+	FIO.o_RB1_Stop := TRUE; // Deixa o robô travado
+	FIO.o_RB1_Start := FALSE; // Impede o robô iniciar o movimento
   
 	
 	ELSE // Caso a máquina não esteja em nenhum estado válido, ela retorna ao estado ocioso 
@@ -515,7 +457,8 @@ CASE E_Emp OF
 	IF NOT os_emp[E_Emp] THEN
 		os_emp := os_reset;
 		
-		
+		global.Fila_emp(clear := TRUE);
+		global.Fila_emp(clear := FALSE);
 		
 		os_emp[E_Emp] := TRUE;
 	END_IF 
@@ -527,60 +470,35 @@ CASE E_Emp OF
 	FIO.o_EMETAL1 := FALSE;
 	FIO.o_EMETAL2 := FALSE;
 	FIO.o_EMETAL3 := FALSE;
-	Delay_E_Emp_5(IN := FALSE);
-	global.Fila_emp.clear     := TRUE;
   
 	// Transições de estado
   	IF Maquina3 THEN // Se a máquina supervisora mandar o sinal de ligar, a máquina de empacotamento sai do ócio
 		E_Emp := 1;
-		global.Fila_emp.clear := FALSE;
 	END_IF;
 	
 	1: // Posicionar esteira de plástico
-  	// Ação oneshot
-	IF NOT os_emp[E_Emp] THEN
-		os_emp := os_reset;
-		
-		
-		
-		os_emp[E_Emp] := TRUE;
-	END_IF 
 	// Ações
+	FIO.o_E3 := FALSE;
 	posicionarEstPlas(start:=TRUE);
   
 	// Transições de estado
 	IF posicionarEstPlas.done THEN
-  posicionarEstPlas.start := FALSE;
+		posicionarEstPlas(start := FALSE);
 		E_Emp := 2;
 	END_IF;
 	
 	2: // Posicionar esteira de metal
-  	// Ação oneshot
-	IF NOT os_emp[E_Emp] THEN
-		os_emp := os_reset;
-		
-		
-		
-		os_emp[E_Emp] := TRUE;
-	END_IF 
   	// Ações
+	FIO.o_E3 := FALSE;
 	posicionarEstMetal(start:=TRUE);
 
 	// Transições de estado
 	IF posicionarEstMetal.done THEN
-  posicionarEstMetal.start := FALSE;
+		posicionarEstMetal(start := FALSE);
 		E_Emp := 3;
 	END_IF;
 	
 	3: // Ligar esteira
-  	// Ação oneshot
-	IF NOT os_emp[E_Emp] THEN
-		os_emp := os_reset;
-		
-		
-		
-		os_emp[E_Emp] := TRUE;
-	END_IF 
   	// Ações
 	FIO.o_E3 := TRUE;
 	FIO.o_EPLASTIC1 := FALSE;
@@ -591,19 +509,17 @@ CASE E_Emp OF
 	FIO.o_EMETAL3 := FALSE;
 	
 	// Transições de estado
-IF OP3 THEN
-  E_Emp := 4;
-END_IF;
+	IF OP3 THEN
+		IF global.Fila_emp.itemOut.metal THEN
+			E_Emp := 5;
+
+		ELSE
+			E_Emp := 4;
+		END_IF;
+		
+	END_IF;
 	
 	4: // Mover plástico
-  	// Ação oneshot
-	IF NOT os_emp[E_Emp] THEN
-		os_emp := os_reset;
-		
-		
-		
-		os_emp[E_Emp] := TRUE;
-	END_IF 
   	// Ações
 	movPlas(start:=TRUE);
 	FIO.o_EPLASTIC1 := FALSE;
@@ -615,7 +531,7 @@ END_IF;
 
 	// Transições de estado
 	IF movPlas.done THEN
-   	movPlas.start := FALSE;
+   	movPlas(start := FALSE);
    	plastico_counter := plastico_counter + 1;
    		IF plastico_counter < itemPorCaixa THEN
     		E_Emp := 3;
@@ -626,14 +542,6 @@ END_IF;
   	END_IF;
 	
   	5: // Mover metal
-  	// Ação oneshot
-	IF NOT os_emp[E_Emp] THEN
-		os_emp := os_reset;
-		
-		
-		
-		os_emp[E_Emp] := TRUE;
-	END_IF 
 	// Ações
 	movMetal(start:=TRUE);
 	FIO.o_EPLASTIC1 := FALSE;
@@ -645,50 +553,33 @@ END_IF;
 
 	// Transições de estado
   	IF movMetal.done THEN
-   		movMetal.start := FALSE;
+   		movMetal(start := FALSE);
    		metal_counter := metal_counter + 1;
    		IF metal_counter < itemPorCaixa THEN
     		E_Emp := 3;
-
    		ELSE
     		E_Emp := 7;
    		END_IF;
   	END_IF;
 
   	6: // Mover esteira plástico
-  	// Ação oneshot
-	IF NOT os_emp[E_Emp] THEN
-		os_emp := os_reset;
-		
-		
-		
-		os_emp[E_Emp] := TRUE;
-	END_IF 
   	// Ações
 	reposicionarEstPlas(start:=TRUE);
   
 	// Transições de estado
 	IF reposicionarEstPlas.done THEN
-		reposicionarEstPlas.start := FALSE;
+		reposicionarEstPlas(start := FALSE);
 		plastico_counter := 0;
 		E_Emp := 3;
 	END_IF;
 	
   	7: // Mover esteira metal
-  	// Ação oneshot
-	IF NOT os_emp[E_Emp] THEN
-		os_emp := os_reset;
-		
-		
-		
-		os_emp[E_Emp] := TRUE;
-	END_IF 
   	// Ações
   	reposicionarEstMetal(start:=TRUE);
   
 	// Transições de estado
 	IF reposicionarEstMetal.done THEN
-		reposicionarEstMetal.start := FALSE;
+		reposicionarEstMetal(start := FALSE);
 		metal_counter := 0;
 		E_Emp := 3;
 	END_IF;
@@ -699,6 +590,7 @@ END_IF;
 		os_emp := os_reset;
 		
 		global.Fila_emp(clear:=TRUE);
+		global.Fila_emp(clear:=FALSE);
 		
 		os_emp[E_Emp] := TRUE;
 	END_IF 
@@ -710,9 +602,6 @@ END_IF;
 	FIO.o_EMETAL1 := FALSE;
 	FIO.o_EMETAL2 := FALSE;
 	FIO.o_EMETAL3 := FALSE;
-	Delay_E_Emp_5(IN := FALSE);
-  
-	// Transições de estado
   
 	
 	ELSE // Caso a máquina não esteja em nenhum estado válido, ela retorna ao estado ocioso 
@@ -742,11 +631,6 @@ END_IF;
 //----------------------------------MÁQUINA SUPERVISORA---------------------------------------
 //----------------------------------------INÍCIO----------------------------------------------
 
-// Deixar leds desligados por padrão
-FIO.o_LedG := FALSE;
-FIO.o_LedR := FALSE;
-FIO.o_LedY := FALSE;
-
 CASE E_Sup OF
 	0: // Estado ocioso 
   	// Ações
@@ -763,11 +647,13 @@ CASE E_Sup OF
 	trigSPMais(CLK:=FIO.i_SPMais);
 	IF trigSPMais.Q THEN
 		itemPorCaixa := itemPorCaixa + 1;
+		trigSPMais(CLK:=FIO.i_SPMais);
 	END_IF;
 
 	trigSPMenos(CLK:=FIO.i_SPMenos);
 	IF trigSPMenos.Q THEN
 		itemPorCaixa := itemPorCaixa - 1;
+		trigSPMenos(CLK:=FIO.i_SPMenos);
 	END_IF;
   
 	// Transições de estado
@@ -797,7 +683,7 @@ CASE E_Sup OF
   	// Ações
 	Maquina1   := TRUE;
 	Maquina2   := TRUE;
-	Maquina3   := FALSE;
+	Maquina3   := TRUE;
 	Emergencia1 := FALSE;
 	Emergencia2 := FALSE;
 	Emergencia3 := FALSE;
