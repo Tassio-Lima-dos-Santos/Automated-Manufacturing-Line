@@ -13,14 +13,6 @@ VAR
 	trigSensor : R_TRIG;
     state : INT := 0;
 
-    // Coordenadas
-    Xconveyor : INT := 1000;
-    Yconveyor : INT := 600;
-    Zconveyor : INT := 990;
-    Xidle : INT := 500;
-    Yidle : INT := 500;
-    Zidle : INT := 200;
-
 END_VAR
 
 trigStart(CLK:=start);
@@ -34,7 +26,7 @@ CASE state OF
         END_IF
 
     10: // Move to conveyor position
-        empCNC(targetX := Xconveyor, targetY := Yconveyor, targetZ := Zconveyor, start := TRUE);
+        empCNC(targetX := constante.XconveyorMetal, targetY := constante.YconveyorMetal, targetZ := constante.ZconveyorMetal, start := TRUE);
         IF empCNC.done THEN
             empCNC(start := FALSE);
             state := 20;
@@ -60,7 +52,7 @@ CASE state OF
         state := 50;
 
     50: // Return to idle position
-        empCNC(targetX := Xidle, targetY := Yidle, targetZ := Zidle, start := TRUE);
+        empCNC(targetX := constante.Xidle, targetY := constante.Yidle, targetZ := constante.Zidle, start := TRUE);
         IF empCNC.done THEN
             empCNC(start := FALSE);
             state := 60;
