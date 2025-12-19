@@ -28,7 +28,7 @@ CASE state OF
 
     10: // Move to conveyor position
         empCNC(targetX := constante.XconveyorPlas, targetY := constante.YconveyorPlas, targetZ := constante.ZconveyorPlas, start := TRUE);
-        IF empCNC1.done THEN
+        IF empCNC.done THEN
             empCNC(start := FALSE);
             state := 20;
         END_IF
