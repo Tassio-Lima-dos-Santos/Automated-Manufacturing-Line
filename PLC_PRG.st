@@ -55,14 +55,15 @@ VAR
 	caixa    : BOOL;
 	
 	// Timers dos sensores
-	Timer_sc  	  : TON := (PT := T#120S);
-	Timer_op1 	  : TON := (PT := T#120S);
-	Timer_op2     : TON := (PT := T#120S);
-	Timer_op3     : TON := (PT := T#180S);
+	Timer_sc  	  : TON := (PT := T#60S);
+	Timer_op1 	  : TON := (PT := T#60S);
+	Timer_op2     : TON := (PT := T#60S);
+	Timer_op3     : TON := (PT := T#120S);
 	
 	// Delays
 	Delay_Cla_metal : TP := (PT := T#1S); // Delay da classificação metal
 	delayEstabilizarBalanca : TON := (PT := T#2S); // Delay da balança
+	delayConclusaoUsi : TON := (PT := T#0.5S); // Delay para voltar ao estado inicial após concluir uma usinagem
 	
 	// Triggers
 	trigSC : R_TRIG; // Trigger ativo na subida do sensor SC, 
@@ -78,7 +79,6 @@ VAR
 	movimentoPistao : empurrarCaixa;
 
 	// Blocos Funcionais - Usinagem
-	pFilaUsi : pushFilaUsi;
 
 	// Blocos Funcionais - Empacotamento
 	empCNC : FB_MoveTo;
@@ -88,8 +88,6 @@ VAR
  	movMetal : moverMetal;
 	reposicionarEstPlas : reposicionarEsteiraPlastico;
 	reposicionarEstMetal : reposicionarEsteiraMetal;
-	pFilaEmp : pushFilaEmp;
-
 	
 END_VAR
 
@@ -185,7 +183,11 @@ CASE E_Cla OF
   
 	// Transições de estado
     IF FIO.i_DS2 THEN // Se o sensor óptico 1 detectar algo, vai para o estado de estabilizar o peso
-		E_Cla := 2;
+		IF esperaCla THEN
+			E_Cla := 7;
+		ELSE
+			E_Cla := 2;
+		END_IF;
 	END_IF;
 	
 	2: // Espera estabilizar peso
@@ -197,7 +199,11 @@ CASE E_Cla OF
 
 	// Transições de estado
     IF delayEstabilizarBalanca.Q THEN // Se o timer 1 der sinal, passa pro próximo estado
-		E_Cla := 3;
+		IF esperaCla THEN
+			E_Cla := 7;
+		ELSE
+			E_Cla := 3;
+		END_IF;
 		delayEstabilizarBalanca(IN := FALSE);
 	END_IF;
 	
@@ -240,7 +246,11 @@ CASE E_Cla OF
 
 	// Transições de estado
     IF movimentoPistao.done THEN
-		E_Cla := 1;
+		IF esperaCla THEN
+			E_Cla := 7;
+		ELSE
+			E_Cla := 1;
+		END_IF;
 		movimentoPistao(start:=FALSE);
 	END_IF;
 
@@ -257,13 +267,16 @@ CASE E_Cla OF
   	// Ações
 	FIO.o_E1 := TRUE;
 	FIO.o_E_SP := TRUE; // Liga a esteira da balança
-	pFilaUsi(start := TRUE); // Passa o item que está saindo da fila de classificação para a fila de usinagem
+	pushFilaUsi();
 
 
 	// Transições de estado
-    IF NOT FIO.i_DS2 AND pFilaUsi.done THEN // Se não detectar mais com o sensor óptico, volta ao início
-		pFilaUsi(start := FALSE);
-		E_Cla := 1;
+    IF NOT FIO.i_DS2 THEN // Se não detectar mais com o sensor óptico, volta ao início
+		IF esperaCla THEN
+			E_Cla := 7;
+		ELSE
+			E_Cla := 1;
+		END_IF;
 	END_IF;
 	
   	6: // Estado Emergência
@@ -308,9 +321,6 @@ IF Emergencia1 THEN
 	
 ELSIF NOT(Maquina1) THEN
 	E_Cla := 0;
-
-ELSIF esperaCla THEN
-	E_Cla := 7;
 
 END_IF;
 
@@ -388,8 +398,6 @@ CASE E_Usi OF
 	END_IF;
 
 	3: // Passar item para a próxima fila 
-
-	// TODO : Arrumar o código aqui, por algum motivo ele fica preso nesse estado no segundo item usinado
 	
   	// Ações
 	FIO.o_E2 := TRUE; // Liga a esteira
@@ -397,12 +405,13 @@ CASE E_Usi OF
 	FIO.o_RB1_Reset := FALSE; // Impede o robô de resetar
 	FIO.o_RB1_Stop := FALSE; // Impede o robô travado
 	FIO.o_RB1_Start := FALSE; // Impede o movimento do robô
-	pFilaEmp(start := TRUE); // Passa o item que está saindo da fila de usinagem para a fila de empacotamento
+	pushFilaUsi();
+	delayConclusaoUsi(IN := TRUE);
   
 	// Transições de estado
-  	IF pFilaEmp.done THEN // Se o movimento 1 do braço robótico for concluído, passa pro próximo estado
+  	IF delayConclusaoUsi.Q THEN // Se o movimento 1 do braço robótico for concluído, passa pro próximo estado
+		delayConclusaoUsi(IN := FALSE);
 		E_Usi := 1; // Volta pro estado 1
-		pFilaEmp(start := FALSE);
 	END_IF;
 
 
@@ -544,8 +553,10 @@ CASE E_Emp OF
 
 	// Transições de estado
 	IF movPlas.done THEN
-   	movPlas(start := FALSE);
-   	plastico_counter := plastico_counter + 1;
+		global.Fila_emp(pop := TRUE);
+		global.Fila_emp(pop := FALSE);
+		movPlas(start := FALSE);
+		plastico_counter := plastico_counter + 1;
    		IF plastico_counter < itemPorCaixa THEN
     		E_Emp := 3;
 
@@ -566,6 +577,8 @@ CASE E_Emp OF
 
 	// Transições de estado
   	IF movMetal.done THEN
+		global.Fila_emp(pop := TRUE);
+		global.Fila_emp(pop := FALSE);
    		movMetal(start := FALSE);
    		metal_counter := metal_counter + 1;
    		IF metal_counter < itemPorCaixa THEN
