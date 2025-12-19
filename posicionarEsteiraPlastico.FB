@@ -13,15 +13,6 @@ VAR
 	trigSensor : R_TRIG;
     state : INT := 0;
 
-    // Coordenadas
-    Xconveyor : INT := 470;
-    Yconveyor : INT := 600;
-    Zconveyor : INT := 1000;
-	
-    Xidle : INT := 500;
-    Yidle : INT := 500;
-    Zidle : INT := 200;
-
 END_VAR
 
 trigStart(CLK:=start);
