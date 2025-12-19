@@ -1,8 +1,8 @@
 FUNCTION pushFilaEmp : BOOL
 VAR_INPUT
-VAR_END;
+END_VAR
 VAR
-VAR_END;
+END_VAR
 
 global.Fila_emp.itemIn.metal := global.Fila_usi.itemOut;
 global.Fila_emp(push := TRUE);
