@@ -11,7 +11,7 @@ END_VAR
 VAR
 	trigStart : R_TRIG;
     state : INT := 0;
-    popTimer : TON := (PT := T#0.5S);
+    popTimer : TON := (PT := T#0.1S);
 
 END_VAR
 
