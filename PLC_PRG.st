@@ -55,10 +55,10 @@ VAR
 	caixa    : BOOL;
 	
 	// Timers dos sensores
-	Timer_sc  	  : TON := (PT := T#60S);
-	Timer_op1 	  : TON := (PT := T#60S);
-	Timer_op2     : TON := (PT := T#60S);
-	Timer_op3     : TON := (PT := T#120S);
+	Timer_sc  	  : TON := (PT := T#120S);
+	Timer_op1 	  : TON := (PT := T#120S);
+	Timer_op2     : TON := (PT := T#120S);
+	Timer_op3     : TON := (PT := T#180S);
 	
 	// Delays
 	Delay_Cla_metal : TP := (PT := T#1S); // Delay da classificação metal
@@ -358,7 +358,7 @@ CASE E_Usi OF
 	
   	// Ações
 	FIO.o_E2 := TRUE; // Liga a esteira
-	FIO.o_MachiningCenterProduceLids := FALSE;
+	FIO.o_MachiningCenterProduceLids := NOT(global.Fila_usi.itemOut.metal);
 	FIO.o_RB1_Reset := FALSE; // Impede o robô de resetar
 	FIO.o_RB1_Stop := TRUE; // Deixa o robô travado
 	FIO.o_RB1_Start := FALSE; // Impede o robô iniciar o movimento
@@ -393,7 +393,7 @@ CASE E_Usi OF
 	
   	// Ações
 	FIO.o_E2 := TRUE; // Liga a esteira
-	FIO.o_MachiningCenterProduceLids := FALSE;
+	FIO.o_MachiningCenterProduceLids := NOT(global.Fila_usi.itemOut.metal);
 	FIO.o_RB1_Reset := FALSE; // Impede o robô de resetar
 	FIO.o_RB1_Stop := FALSE; // Impede o robô travado
 	FIO.o_RB1_Start := FALSE; // Impede o movimento do robô
@@ -420,7 +420,6 @@ CASE E_Usi OF
 	
   	// Ações
 	FIO.o_E2     := FALSE; // Desliga a esteira
-	FIO.o_MachiningCenterProduceLids := FALSE;
 	FIO.o_RB1_Reset := FALSE; // Impede o robô de resetar
 	FIO.o_RB1_Stop := TRUE; // Deixa o robô travado
 	FIO.o_RB1_Start := FALSE; // Impede o robô iniciar o movimento
