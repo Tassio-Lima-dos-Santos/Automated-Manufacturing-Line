@@ -58,11 +58,10 @@ VAR
 	Timer_sc  	  : TON := (PT := T#30S);
 	Timer_op1 	  : TON := (PT := T#30S);
 	Timer_op2     : TON := (PT := T#30S);
-	Timer_op3     : TON := (PT := T#30S);
+	Timer_op3     : TON := (PT := T#40S);
 	
 	// Delays
-	Delay_Cla_metal : TP := (PT := T#1S); // Delay da classificação metal
-	delayEstabilizarBalanca : TON := (PT := T#2S); // Delay da balança
+	delayEstabilizarBalanca : TON := (PT := T#1.5S); // Delay da balança
 	
 	// Triggers
 	trigSC : R_TRIG; // Trigger ativo na subida do sensor SC, 
