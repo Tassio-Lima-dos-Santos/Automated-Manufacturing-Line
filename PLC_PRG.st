@@ -168,6 +168,7 @@ CASE E_Cla OF
 	FIO.o_E1          := FALSE; // Esteira 1 parada
 	FIO.o_E_SP        := FALSE; // Esteira 2 parada
 	FIO.o_C1          := FALSE; // Pistão retraído
+	FIO.o_NumCaixas := 0;
   
 	// Transições de estado
   	IF Maquina1 THEN // Se receber o sinal Maquina1, a máquina classificadora sai do ócio
@@ -261,6 +262,7 @@ CASE E_Cla OF
 
 	// Transições de estado
     IF movimentoPistao.done THEN
+		FIO.o_NumCaixas := FIO.o_NumCaixas + 1;
 		IF esperaCla THEN
 			E_Cla := 7;
 		ELSE
@@ -308,6 +310,7 @@ CASE E_Cla OF
 	FIO.o_E1          := FALSE;
 	FIO.o_E_SP          := FALSE;
 	FIO.o_C1           := FALSE;
+	FIO.o_NumCaixas := 0;
 	delayEstabilizarBalanca(IN := FALSE);
   
 	// Transições de estado
@@ -532,6 +535,8 @@ CASE E_Emp OF
 	FIO.o_EMETAL3 := FALSE;
 	metal_counter := 0;
 	plastico_counter := 0;
+	FIO.o_NumPlastico := 0;
+	FIO.o_NumMetal := 0;
   
 	// Transições de estado
   	IF Maquina3 THEN // Se a máquina supervisora mandar o sinal de ligar, a máquina de empacotamento sai do ócio
@@ -633,6 +638,7 @@ CASE E_Emp OF
 		global.Fila_emp(pop := TRUE);
 		global.Fila_emp(pop := FALSE);
 		movPlas(start := FALSE);
+		FIO.o_NumPlastico := FIO.o_NumPlastico + 1;
 		plastico_counter := plastico_counter + 1;
    		IF plastico_counter < itemPorCaixa THEN
     		E_Emp := 3;
@@ -666,6 +672,7 @@ CASE E_Emp OF
 		global.Fila_emp(pop := TRUE);
 		global.Fila_emp(pop := FALSE);
    		movMetal(start := FALSE);
+		FIO.o_NumMetal := FIO.o_NumMetal + 1;
    		metal_counter := metal_counter + 1;
    		IF metal_counter < itemPorCaixa THEN
     		E_Emp := 3;
@@ -734,7 +741,8 @@ CASE E_Emp OF
 	FIO.o_EMETAL3 := FALSE;
 	metal_counter := 0;
 	plastico_counter := 0;
-  
+	FIO.o_NumPlastico := 0;
+	FIO.o_NumMetal := 0;
 	
 	ELSE // Caso a máquina não esteja em nenhum estado válido, ela retorna ao estado ocioso 
 		E_Emp := 0;
