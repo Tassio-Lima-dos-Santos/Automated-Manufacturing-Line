@@ -54,10 +54,11 @@ VAR
     metal    : BOOL;
 	caixa    : BOOL;
 	
-	// Timers dos sensores
+	// Timers de emergência
 	Timer_sc  	  : TON := (PT := T#30S);
 	Timer_op1 	  : TON := (PT := T#30S);
 	Timer_op2     : TON := (PT := T#30S);
+	Timer_usi     : TON := (PT := T#15S);
 	Timer_op3     : TON := (PT := T#40S);
 	
 	// Delays
@@ -122,9 +123,11 @@ ELSE // Caso contrário, os timers permanecem inativos
 END_IF;
 
 IF Maquina2 AND NOT Emergencia2 THEN // Se a máquina 2 estiver operando
-	Timer_op2(IN:=NOT OP2); // Timer perma
-ELSE // Caso contrário, os timers permanecem inativos
+	Timer_op2(IN:=NOT OP2);
+	Timer_usi(IN:=NOT FIO.i_MachiningCenterIsBusy);
+ELSE
 	Timer_op2(IN:=FALSE);
+	Timer_usi(IN:=FALSE);
 END_IF;
 
 IF Maquina3 AND NOT Emergencia3 THEN // Se a máquina 3 estiver operando
@@ -864,7 +867,7 @@ CASE E_Sup OF
 END_CASE;
 
 // Transições de estado universais
-IF (EMER OR Timer_sc.Q OR Timer_op1.Q OR Timer_op2.Q OR Timer_op3.Q) THEN
+IF (EMER OR Timer_sc.Q OR Timer_op1.Q OR Timer_op2.Q OR Timer_usi.Q OR Timer_op3.Q) THEN
 	E_Sup := 4;
 	
 ELSIF STOP THEN
