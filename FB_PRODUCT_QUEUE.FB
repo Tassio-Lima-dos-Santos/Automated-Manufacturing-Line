@@ -1,8 +1,8 @@
 FUNCTION_BLOCK FB_PRODUCT_QUEUE
 VAR_INPUT
-    push : BOOL;
-    pop  : BOOL;
-    clear  : BOOL;
+    push : BOOL := FALSE;
+    pop  : BOOL := FALSE;
+    clear  : BOOL := FALSE;
     itemIn : ST_PRODUCT;
 END_VAR
 
@@ -38,12 +38,12 @@ IF trigClear.Q THEN
     count := 0;
 
 // Dequeue
-ELSIF trigPop THEN
+ELSIF trigPop.Q AND (count > 0) THEN
     head := (head MOD 100) + 1;
     count := count - 1;
 
 // Enqueue
-ELSIF trigPush AND (count < 100) THEN
+ELSIF trigPush.Q AND (count < 100) THEN
     buffer[tail] := itemIn;
     tail := (tail MOD 100) + 1;
     count := count + 1;
