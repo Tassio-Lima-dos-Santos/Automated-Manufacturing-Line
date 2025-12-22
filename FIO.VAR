@@ -11,15 +11,15 @@ VAR_GLOBAL
 	i_SC1Mais 				  : BOOL; // Fim de curso do pistão - estendido
 	i_SC1Menos 	 			  : BOOL; // Fim de curso do pistão - retraido
     i_SI        			  : BOOL; // Sensor indutivo
-	i_SP 					  : REAL; // Sensor da balança (4.0 plástico; 5.0 metal; 1.5 caixa)
+	i_SP 					  : INT; // Sensor da balança (4.0 plástico; 5.0 metal; 1.5 caixa)
 	i_SPMais 				  : BOOL; // Botão de aumentar quantidade de itens por caixa
 	i_SPMenos 				  : BOOL; // Botão de diminuir quantidade de itens por caixa
 	i_SPP 					  : BOOL; // Sensor de item pego pela ponte CNC
 	i_Start 				  : BOOL; // Botão START
 	i_Stop 					  : BOOL; // Botão STOP
-    i_XPOS        			  : REAL; // Dado da posição X atual da ponte CNC
-    i_YPOS    				  : REAL; // Dado da posição Y atual da ponte CNC
-    i_ZPOS      			  : REAL; // Dado da posição Z atual da ponte CNC
+    i_XPOS        			  : INT; // Dado da posição X atual da ponte CNC
+    i_YPOS    				  : INT; // Dado da posição Y atual da ponte CNC
+    i_ZPOS      			  : INT; // Dado da posição Z atual da ponte CNC
 	i_DS3        			  : BOOL; // Sensor óptico da esteira de plástico
 	i_DS4        			  : BOOL; // Sensor óptico da esteira de metal
 
@@ -48,7 +48,11 @@ VAR_GLOBAL
 	o_RB1_Reset 			  : BOOL; // Botão de reset do processo do braço robótico + usinagem
 	o_RB1_Start 			  : BOOL; // Botão de iniciar o processo do braço robótico + usinagem
 	o_Succao 				  : BOOL; // Acionamento da sucção da ponte CNC
-    o_X           			  : REAL; // Posição X da ponte CNC
-    o_Y   					  : REAL; // Posição Y da ponte CNC
-    o_Z  					  : REAL; // Posição Z da ponte CNC
+    o_X           			  : INT; // Posição X da ponte CNC
+    o_Y   					  : INT; // Posição Y da ponte CNC
+    o_Z  					  : INT; // Posição Z da ponte CNC
+	o_MachiningCenterProduceLids   : BOOL; // Modo de usinagem do plástico
+	o_NumCaixas               : INT;  // Número de caixas
+	o_NumMetal                : INT;  // Número de itens de metal
+	o_NumPlastico             : INT;  // Número de itens de plástico
 END_VAR
