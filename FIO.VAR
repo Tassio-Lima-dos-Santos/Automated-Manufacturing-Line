@@ -20,6 +20,8 @@ VAR_GLOBAL
     i_XPOS        			  : REAL; // Dado da posição X atual da ponte CNC
     i_YPOS    				  : REAL; // Dado da posição Y atual da ponte CNC
     i_ZPOS      			  : REAL; // Dado da posição Z atual da ponte CNC
+	i_DS3        			  : BOOL; // Sensor óptico da esteira de plástico
+	i_DS4        			  : BOOL; // Sensor óptico da esteira de metal
 
 	o_C1 					  : BOOL; // Pistão
 	o_Caixas_Emissor_1 		  : BOOL; // Emissor de caixas (metal)

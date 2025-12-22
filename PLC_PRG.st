@@ -683,11 +683,11 @@ CASE E_Emp OF
 	END_IF 
 	
   	// Ações
-	reposicionarEstPlas(start:=TRUE);
+	posicionarEstPlas(start:=TRUE);
   
 	// Transições de estado
-	IF reposicionarEstPlas.done THEN
-		reposicionarEstPlas(start := FALSE);
+	IF posicionarEstPlas.done THEN
+		posicionarEstPlas(start := FALSE);
 		plastico_counter := 0;
 		E_Emp := 3;
 	END_IF;
@@ -703,11 +703,11 @@ CASE E_Emp OF
 	END_IF 
 	
   	// Ações
-  	reposicionarEstMetal(start:=TRUE);
+  	posicionarEstMetal(start:=TRUE);
   
 	// Transições de estado
-	IF reposicionarEstMetal.done THEN
-		reposicionarEstMetal(start := FALSE);
+	IF posicionarEstMetal.done THEN
+		posicionarEstMetal(start := FALSE);
 		metal_counter := 0;
 		E_Emp := 3;
 	END_IF;

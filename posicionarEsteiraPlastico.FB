@@ -8,7 +8,6 @@ VAR_OUTPUT
 END_VAR
 
 VAR
-    empCNC : FB_MoveTo;
 	trigStart : R_TRIG;
 	trigSensor : R_TRIG;
     state : INT := 0;
@@ -25,40 +24,26 @@ CASE state OF
 			done := FALSE;
         END_IF
 
-    10: // Move to conveyor position
-        empCNC(targetX := constante.XconveyorPlas, targetY := constante.YconveyorPlas, targetZ := constante.ZconveyorPlas, start := TRUE);
-        IF empCNC.done THEN
-            empCNC(start := FALSE);
-            state := 20;
-        END_IF
-
-    20: // Turn on conveyor
+    10: // Turn on conveyor
         FIO.o_EPLASTIC1 := TRUE;
         FIO.o_EPLASTIC2 := TRUE;
         FIO.o_EPLASTIC3 := TRUE;
-        state := 30;
+        state := 20;
 
 
-    30: // Wait for trigger
-        trigSensor(CLK:=FIO.i_SPP);
+    20: // Wait for trigger
+        trigSensor(CLK:=FIO.i_DS3);
         IF trigSensor.Q THEN
-            state := 40;
+            state := 30;
         END_IF
 
-    40: // Turn off conveyor
+    30: // Turn off conveyor
         FIO.o_EPLASTIC1 := FALSE;
         FIO.o_EPLASTIC2 := FALSE;
         FIO.o_EPLASTIC3 := FALSE;
-        state := 50;
+        state := 40;
 
-    50: // Return to idle position
-        empCNC(targetX := constante.Xidle, targetY := constante.Yidle, targetZ := constante.Zidle, start := TRUE);
-        IF empCNC.done THEN
-            empCNC(start := FALSE);
-            state := 60;
-        END_IF
-
-    60: // Finalizado
+    40: // Finalizado
         done := TRUE;
 		state := 0;
 
