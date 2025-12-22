@@ -58,7 +58,7 @@ VAR
 	Timer_sc  	  : TON := (PT := T#30S);
 	Timer_op1 	  : TON := (PT := T#30S);
 	Timer_op2     : TON := (PT := T#30S);
-	Timer_op3     : TON := (PT := T#50S);
+	Timer_op3     : TON := (PT := T#30S);
 	
 	// Delays
 	Delay_Cla_metal : TP := (PT := T#1S); // Delay da classificação metal
@@ -815,7 +815,7 @@ CASE E_Sup OF
   	// Ações
 	Maquina1   := TRUE;
 	Maquina2   := TRUE;
-	Maquina3   := TRUE;
+	Maquina3   := FALSE;
 	Emergencia1 := FALSE;
 	Emergencia2 := FALSE;
 	Emergencia3 := FALSE;
