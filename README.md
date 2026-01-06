@@ -43,6 +43,10 @@ All items are weighed, and based on the measured value:
 * **Cardboard boxes are identified and discarded** using the pneumatic actuator
 * Plastic and metal parts proceed further into the line
 
+
+https://github.com/user-attachments/assets/35f377f6-2c3e-4610-95fa-4f79c90aeb80
+
+
 ---
 
 ### 3. Manufacturing Cell (Robotic Machining)
