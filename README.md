@@ -168,7 +168,7 @@ The project was designed with **industrial robustness** in mind and could be ada
 
 > *Video following a single item through classification, machining and packaging.*
 
-📌 **Insert video here**
+[![Full Process Walkthrough](https://img.youtube.com/vi/GHSG7c1riMA/0.jpg)](https://www.youtube.com/watch?v=GHSG7c1riMA)
 
 ---
 
